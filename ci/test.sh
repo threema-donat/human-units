@@ -45,12 +45,12 @@ test_miri() {
 }
 
 do_test_miri() {
-    env MIRIFLAGS=-Zmiri-disable-isolation cargo +nightly miri test --features serde "$@"
+    env MIRIFLAGS=-Zmiri-disable-isolation cargo +nightly miri test --features derive,si-units,serde --tests "$@"
 }
 
 clean
 #test_coverage_preamble
-test_all --no-default-features --features serde
-test_all --no-default-features --features serde,no_std
+test_all --no-default-features --features derive,si-units,serde,std
+test_all --no-default-features --features derive,si-units,serde --tests
 #test_coverage_postamble
 test_miri

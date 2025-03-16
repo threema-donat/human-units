@@ -4,16 +4,16 @@
 [![Docs](https://docs.rs/human-units/badge.svg)](https://docs.rs/human-units)
 [![dependency status](https://deps.rs/repo/github/igankevich/human-units/status.svg)](https://deps.rs/repo/github/igankevich/human-units)
 
-Size and duration serialization and formatting library designed for configuration files and command line arguments.
+Size, duration and other SI units serialization and formatting library designed for configuration files and command line arguments.
 
 
 ## Introduction
 
-`human-units` is a library with `Size` and `Duration` types specifically designed to be used in configuration files and as command line arguments.
+`human-units` is a library with `Size`, `Duration` and other SI-related types specifically designed to be used in configuration files and as command line arguments.
 These types serialize sizes and durations in _exact_ but human-readable form.
 
-The library also provides `FormatSize` and `FormatDuration` traits
-to print _approximate_ sizes and durations in a short human-readable form.
+The library also provides `FormatSize`, `FormatDuration`, `FormatSi` traits
+to print _approximate_ values in a short human-readable form.
 
 - No floating point operations.
 - No dependencies by default.
@@ -88,23 +88,45 @@ assert_eq!(r#"size = "1k""#, toml::to_string(&object).unwrap().trim());
 ### Clap integration
 
 ```rust
-#[cfg(not(feature = "no_std"))]
-{
-    use clap::Parser;
-    use human_units::{Duration, Size};
+use clap::Parser;
+use human_units::{Duration, Size};
 
-    #[derive(Parser, Debug)]
-    struct Args {
-        #[arg(long, value_parser=clap::value_parser!(Duration))]
-        timeout: Duration,
-        #[arg(long, value_parser=clap::value_parser!(Size))]
-        size: Size,
-    }
-
-    let args = Args::parse_from(["test-clap", "--timeout", "1m", "--size", "1g"]);
-    assert_eq!(args.timeout, Duration(core::time::Duration::from_secs(60)));
-    assert_eq!(args.size, Size(1024_u64.pow(3)));
+#[derive(Parser, Debug)]
+struct Args {
+    #[arg(long, value_parser=clap::value_parser!(Duration))]
+    timeout: Duration,
+    #[arg(long, value_parser=clap::value_parser!(Size))]
+    size: Size,
 }
+
+let args = Args::parse_from(["test-clap", "--timeout", "1m", "--size", "1g"]);
+assert_eq!(args.timeout, Duration(core::time::Duration::from_secs(60)));
+assert_eq!(args.size, Size(1024_u64.pow(3)));
+```
+
+
+### SI units
+
+```rust
+use human_units::si::{FormatSi, Frequency};
+
+// Convert from hertz, internal representation is nHz (nanohertz).
+let cpu_freq = Frequency::from_si(2200_000_000);
+assert_eq!("2200 MHz", cpu_freq.to_string());
+assert_eq!("2.2 GHz", cpu_freq.format_si().to_string());
+```
+
+
+### Custom units
+
+```rust
+use human_units::si::si_unit;
+
+#[si_unit(symbol = "l")]
+struct Volume(pub u64);
+
+let volume = Volume(2200_000_000);
+assert_eq!("2200 ml", volume.to_string());
 ```
 
 ## Performance benchmarks
