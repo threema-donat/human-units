@@ -4,6 +4,28 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use paste::paste;
 use std::hint::black_box;
 
+macro_rules! parameterize {
+    ($($uint: ident)+) => {
+        paste! {
+            $(
+                pub const fn [<$uint _is_multiple_of>](a: $uint, b: $uint) -> bool {
+                    match b {
+                        0 => a == 0,
+                        _ => a % b == 0,
+                    }
+                }
+            )+
+        }
+    };
+}
+
+parameterize! {
+    u128
+    u64
+    u32
+    u16
+}
+
 macro_rules! bench {
     ($c: ident, $func: ident, $value: expr) => {
         $c.bench_function(stringify!($func), |b| b.iter(|| $func(black_box($value))));
@@ -25,7 +47,7 @@ macro_rules! parameterize {
                         return (0, Prefix::None as usize);
                     }
                     for prefix in Prefix::None as usize..Prefix::$max_prefix as usize {
-                        if !value.is_multiple_of(1024) {
+                        if ![<$uint _is_multiple_of>](value, 1024) {
                             return (value, prefix);
                         }
                         value >>= 10;
@@ -40,7 +62,7 @@ macro_rules! parameterize {
                     $(
                         {
                             const POW: $uint = (1024 as $uint).pow($ilog);
-                            if value.is_multiple_of(POW) {
+                            if [<$uint _is_multiple_of>](value, POW) {
                                 return (value >> (10 * $ilog), $ilog);
                             }
                         }
