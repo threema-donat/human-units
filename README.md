@@ -12,7 +12,7 @@ Size, duration and other SI units serialization and formatting library designed 
 `human-units` is a library with `Size`, `Duration` and other SI-related types specifically designed to be used in configuration files and as command line arguments.
 These types serialize sizes and durations in _exact_ but human-readable form.
 
-The library also provides `FormatSize`, `FormatDuration`, `FormatSi` traits
+The library also provides `FormatSize`, `FormatDuration` traits
 to print _approximate_ values in a short human-readable form.
 
 - No floating point operations.
@@ -108,10 +108,10 @@ assert_eq!(args.size, Size(1024_u64.pow(3)));
 ### SI units
 
 ```rust
-use human_units::si::{FormatSi, Frequency};
+use human_units::si::{Frequency, Prefix};
 
 // Convert from hertz, internal representation is nHz (nanohertz).
-let cpu_freq = Frequency::from_si(2200_000_000);
+let cpu_freq = Frequency::with_si_prefix(2200, Prefix::Mega);
 assert_eq!("2200 MHz", cpu_freq.to_string());
 assert_eq!("2.2 GHz", cpu_freq.format_si().to_string());
 ```
@@ -120,9 +120,9 @@ assert_eq!("2.2 GHz", cpu_freq.format_si().to_string());
 ### IEC units
 
 ```rust
-use human_units::iec::{FormatIec, Byte};
+use human_units::iec::{Byte, Prefix};
 
-let size = Byte::from_iec(1536 * 1024);
+let size = Byte::with_iec_prefix(1536, Prefix::Kibi);
 assert_eq!("1536 KiB", size.to_string());
 assert_eq!("1.5 MiB", size.format_iec().to_string());
 ```
@@ -137,7 +137,7 @@ use human_units::iec::iec_unit;
 #[si_unit(symbol = "l")]
 struct Volume(pub u64);
 
-let volume = Volume(2200_000_000);
+let volume = Volume(2_200_000_000);
 assert_eq!("2200 ml", volume.to_string());
 
 #[iec_unit(symbol = "B/s")]
